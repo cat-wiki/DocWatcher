@@ -1,0 +1,33 @@
+name: Actions Runner Controller Demo
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+
+jobs:
+  Explore-GitHub-Actions:
+    # You need to use the INSTALLATION_NAME from the previous step
+    runs-on: arc-runner-set
+
+    permissions:
+      contents: read
+      issues: write
+
+    steps:
+      - name: Check out repo
+        uses: actions/checkout@v4
+        
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Run DocWatcher
+        run: npm start
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
