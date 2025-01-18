@@ -3,7 +3,7 @@ module.exports = {
     github: {
         owner: 'cat-wiki',    // Organization name instead of username
         repo: 'DocWatcher',          // Repository name
-        urlListPath: 'urls/tos-urls.txt',
+        urlListPath: 'urls/doc-urls.txt',
         branch: 'main'
     },
     scraping: {
