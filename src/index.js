@@ -1,21 +1,28 @@
-// index.js
-const puppeteer = require('puppeteer');
-const fs = require('fs').promises;
-const GitHubIntegration = require('./githubIntegration');
-const config = require('./config');
+// src/index.js
+import { fileURLToPath } from 'url';
+import { dirname, resolve } from 'path';
+import { mkdir, writeFile } from 'fs/promises';
+import puppeteer from 'puppeteer';
+import { config } from 'dotenv';
+import { Octokit } from '@octokit/rest';
+
+// Initialize environment configuration
+config({ path: resolve(dirname(fileURLToPath(import.meta.url)), '../.env') });
 
 async function delay(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
 }
 
-async function scrapePage(url, retries = config.scraping.retryAttempts) {
+async function scrapePage(url, retries = 3) {
     const browser = await puppeteer.launch({
-        headless: false,
+        headless: "new",
         args: [
             '--no-sandbox',
             '--disable-setuid-sandbox',
             '--disable-web-security',
-            '--disable-features=IsolateOrigins,site-per-process'
+            '--disable-features=IsolateOrigins,site-per-process',
+            '--disable-gpu',
+            '--disable-dev-shm-usage'
         ]
     });
 
@@ -43,7 +50,6 @@ async function scrapePage(url, retries = config.scraping.retryAttempts) {
         await autoScroll(page);
 
         const content = await page.evaluate(() => {
-            // Helper function to check if element is visible
             function isVisible(element) {
                 const style = window.getComputedStyle(element);
                 return style.display !== 'none' && 
@@ -51,7 +57,6 @@ async function scrapePage(url, retries = config.scraping.retryAttempts) {
                        style.opacity !== '0';
             }
 
-            // Helper function to get text content with preserved structure
             function getStructuredText(element) {
                 if (!isVisible(element)) {
                     return '';
@@ -153,21 +158,29 @@ async function scrapePage(url, retries = config.scraping.retryAttempts) {
             .replace(/\n{3,}/g, '\n\n')
             .trim();
 
-        const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-        const fileName = `${config.outputDir}/${new URL(url).hostname}-${timestamp}.txt`;
+        function sanitizeUrl(url) {
+            // Remove protocol and sanitize for filename
+            return url
+                .replace(/^https?:\/\//, '')  // Remove protocol
+                .replace(/[\\/?*:|"<>]/g, '_')  // Replace invalid filename chars
+                .replace(/[.]/g, '-');  // Replace dots with dashes except last one
+        }
         
-        await fs.mkdir(config.outputDir, { recursive: true });
+        const baseFileName = sanitizeUrl(url);
+        const fileName = `./data/${baseFileName}.txt`;
+        
+        await mkdir('./data', { recursive: true });
         
         const metadata = {
             url,
-            timestamp,
+            lastChecked: new Date().toISOString(),
             selector: content.selector,
             contentLength: content.text.length
         };
 
-        await fs.writeFile(fileName, content.text);
-        await fs.writeFile(
-            fileName.replace('.txt', '-metadata.json'),
+        await writeFile(fileName, content.text);
+        await writeFile(
+            `${fileName}.metadata.json`,
             JSON.stringify(metadata, null, 2)
         );
 
@@ -178,7 +191,7 @@ async function scrapePage(url, retries = config.scraping.retryAttempts) {
         console.error(`Error scraping ${url}:`, error);
         if (retries > 0) {
             console.log(`Retrying... (${retries} attempts remaining)`);
-            await delay(config.scraping.retryDelay);
+            await delay(5000);
             return scrapePage(url, retries - 1);
         }
         throw error;
@@ -191,7 +204,7 @@ async function autoScroll(page) {
     await page.evaluate(async () => {
         await new Promise((resolve) => {
             let totalHeight = 0;
-            const distance = 100;
+            const distance = 500; // Increased scroll distance
             const timer = setInterval(() => {
                 const scrollHeight = document.body.scrollHeight;
                 window.scrollBy(0, distance);
@@ -201,41 +214,62 @@ async function autoScroll(page) {
                     clearInterval(timer);
                     resolve();
                 }
-            }, 100);
+            }, 20); // Decreased interval time
         });
     });
+
+    // Add a small delay after scrolling to ensure content loads
+    await page.waitForTimeout(500);
 }
 
-async function main() {
-    // Initialize GitHub integration
-    const githubToken = process.env.GITHUB_TOKEN;
-    if (!githubToken) {
+async function fetchUrlsFromGithub() {
+    if (!process.env.GITHUB_TOKEN) {
         throw new Error('GITHUB_TOKEN environment variable is required');
     }
 
-    const github = new GitHubIntegration(githubToken);
-    
+    const octokit = new Octokit({
+        auth: process.env.GITHUB_TOKEN
+    });
+
     try {
-        // Fetch URLs from GitHub
-        const urls = await github.fetchUrlList({
-            owner: config.github.owner,
-            repo: config.github.repo,
-            path: config.github.urlListPath,
-            branch: config.github.branch
+        const { data } = await octokit.repos.getContent({
+            owner: 'cat-wiki',
+            repo: 'DocWatcher',
+            path: 'urls/doc-urls.txt'
         });
 
-        console.log(`Found ${urls.length} URLs to scrape`);
+        const content = Buffer.from(data.content, 'base64').toString();
+        return content
+            .split('\n')
+            .map(line => line.trim())
+            .filter(line => line && !line.startsWith('#'))
+            .filter(line => {
+                try {
+                    new URL(line);
+                    return true;
+                } catch {
+                    console.warn(`Skipping invalid URL: ${line}`);
+                    return false;
+                }
+            });
+    } catch (error) {
+        console.error('Failed to fetch URLs from GitHub:', error);
+        throw error;
+    }
+}
 
-        // Process each URL
+async function main() {
+    try {
+        console.log('Fetching URLs from GitHub...');
+        const urls = await fetchUrlsFromGithub();
+        console.log(`Found ${urls.length} valid URLs to scrape`);
+
         for (const url of urls) {
             try {
                 await scrapePage(url);
-                // Random delay between requests
-                await delay(
-                    Math.random() * 
-                    (config.scraping.maxWaitBetweenRequests - config.scraping.minWaitBetweenRequests) + 
-                    config.scraping.minWaitBetweenRequests
-                );
+                const delayTime = Math.random() * 5000 + 2000;
+                console.log(`Waiting ${Math.round(delayTime/1000)}s before next URL...`);
+                await delay(delayTime);
             } catch (error) {
                 console.error(`Failed to scrape ${url} after all retries:`, error);
             }
@@ -245,11 +279,9 @@ async function main() {
     }
 }
 
-if (require.main === module) {
+// Run main if this is the entry point
+if (process.argv[1] === fileURLToPath(import.meta.url)) {
     main().catch(console.error);
 }
 
-module.exports = {
-    scrapePage,
-    autoScroll
-};
+export { scrapePage, autoScroll, fetchUrlsFromGithub };

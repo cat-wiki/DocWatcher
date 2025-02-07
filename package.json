@@ -1,17 +1,19 @@
 {
   "name": "eula-scraper",
   "version": "1.0.0",
+  "type": "module",
   "description": "Web scraper for monitoring EULA/TOS changes",
   "main": "src/index.js",
   "scripts": {
-    "start": "node src/index.js",
-    "test": "node src/test.js"
+    "test": "node src/test-connection.js",
+    "start": "node src/index.js"
   },
   "dependencies": {
-    "@octokit/rest": "^21.1.0",
+    "@octokit/rest": "^20.1.1",
     "cron": "^2.3.0",
-    "dotenv": "^16.0.0",
+    "dotenv": "^16.4.7",
     "js-yaml": "^4.1.0",
+    "node-fetch": "^3.3.2",
     "puppeteer": "^21.0.0",
     "winston": "^3.8.0"
   },

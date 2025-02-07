@@ -6,7 +6,7 @@ class GitHubIntegration {
     constructor(token) {
         this.octokit = new Octokit({
             auth: token,
-            userAgent: 'tos-tracker-v1.0'
+            userAgent: 'doc-tracker-v1.0'
         });
     }
 
