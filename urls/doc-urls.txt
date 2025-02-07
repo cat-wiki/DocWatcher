@@ -1,0 +1,76 @@
+# Terms of Service / EULA URLs to Track
+# Format: One URL per line
+# Comments start with #
+# Group URLs by category
+# Include the specific TOS/EULA/Legal page URL, not just homepage
+
+# Major Tech Platforms
+# Apple
+# Canada
+https://www.apple.com/ca/legal/internet-services/itunes/ca/terms.html
+# USA
+https://www.apple.com/legal/internet-services/itunes/us/terms.html
+
+
+# Google
+https://play.google.com/about/play-terms/index.html
+
+#Microsoft
+https://www.microsoft.com/en-us/servicesagreement
+
+#Amazon
+https://aws.amazon.com/service-terms/
+
+# Software Companies (Known for License/Feature Changes)
+https://www.adobe.com/legal/terms.html
+https://www.autodesk.com/company/terms-of-use
+https://www.jetbrains.com/legal/docs/toolbox/license_agreement/
+https://unity.com/legal/terms-of-service
+
+# Hardware/Device Manufacturers
+https://www.samsung.com/us/Legal/Phone-HSGuide/
+https://www.tesla.com/legal/terms-of-use
+https://www.sonos.com/en-us/legal/terms-of-use
+https://www.lg.com/us/terms
+
+# Cloud Services
+#DropBox
+https://www.dropbox.com/terms
+#Slack
+https://slack.com/terms-of-service
+#Zoom
+https://zoom.us/terms
+
+#Notion
+#https://www.notion.so/Terms-and-Privacy-28ffdd083dc3473e9c2da6ec011b58ac
+https://www.notion.so/notion/Personal-Use-Terms-of-Service-00e4e5d0f2b9411cbee6493f15779500
+https://www.notion.so/notion/Master-Subscription-Agreement-4e1c5dd3e3de45dfa4a8ed60f1a43da0
+
+# Financial Services
+https://www.paypal.com/us/webapps/mpp/ua/useragreement-full
+https://cash.app/legal/us/en-us/tos
+https://www.coinbase.com/legal/user_agreement
+https://www.wealthsimple.com/en-ca/legal/terms
+
+# Subscription Services
+https://www.netflix.com/legal/termsofuse
+https://www.spotify.com/us/legal/end-user-agreement/
+https://www.amazon.com/gp/help/customer/display.html?nodeId=508088
+https://www.hulu.com/legal/terms-of-use
+
+# Gaming Platforms
+https://store.steampowered.com/subscriber_agreement/
+https://www.playstation.com/en-us/legal/psn-terms-of-service/
+https://www.xbox.com/en-US/legal/terms-of-service
+
+# Social Media
+https://twitter.com/en/tos
+https://www.facebook.com/legal/terms
+https://www.tiktok.com/legal/terms-of-service
+https://www.reddit.com/help/useragreement
+
+# Notes:
+# - Update this list regularly as new problematic terms are identified
+# - Prioritize companies known for anti-consumer practices
+# - Include both consumer and enterprise services
+# - Focus on services with history of term changes

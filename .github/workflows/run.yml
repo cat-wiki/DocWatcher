@@ -1,0 +1,79 @@
+name: Actions Runner Controller Demo
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+
+jobs:
+  Explore-GitHub-Actions:
+    # You need to use the INSTALLATION_NAME from the previous step
+    runs-on: arc-runner-set
+
+    permissions:
+      contents: read
+      issues: write
+
+    steps:
+      - name: Check out repo
+        uses: actions/checkout@v4
+        
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      # https://pptr.dev/troubleshooting#chrome-doesnt-launch-on-linux
+      - name: Install puppeteer dependencies
+        run: |
+            sudo apt-get update
+            sudo apt-get install -y \
+                ca-certificates \
+                fonts-liberation \
+                libasound2 \
+                libatk-bridge2.0-0 \
+                libatk1.0-0 \
+                libc6 \
+                libcairo2 \
+                libcups2 \
+                libdbus-1-3 \
+                libexpat1 \
+                libfontconfig1 \
+                libgbm1 \
+                libgcc1 \
+                libglib2.0-0 \
+                libgtk-3-0 \
+                libnspr4 \
+                libnss3 \
+                libpango-1.0-0 \
+                libpangocairo-1.0-0 \
+                libstdc++6 \
+                libx11-6 \
+                libx11-xcb1 \
+                libxcb1 \
+                libxcomposite1 \
+                libxcursor1 \
+                libxdamage1 \
+                libxext6 \
+                libxfixes3 \
+                libxi6 \
+                libxrandr2 \
+                libxrender1 \
+                libxss1 \
+                libxtst6 \
+                lsb-release \
+                wget \
+                xdg-utils \
+                fonts-freefont-ttf \
+                dbus \
+                dbus-x11
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Run DocWatcher
+        run: dbus-launch && npm start
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          DBUS_SESSION_BUS_ADDRESS: "autolaunch:"
